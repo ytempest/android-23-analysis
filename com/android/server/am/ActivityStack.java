@@ -2662,6 +2662,9 @@ final class ActivityStack {
         return true;
     }
 
+    /**
+     * 准备执行Activity的onStop方法
+     */
     final void stopActivityLocked(ActivityRecord r) {
         if (DEBUG_SWITCH) Slog.d(TAG_SWITCH, "Stopping: " + r);
         if ((r.intent.getFlags()&Intent.FLAG_ACTIVITY_NO_HISTORY) != 0
@@ -2696,6 +2699,7 @@ final class ActivityStack {
                 if (!r.visible) {
                     mWindowManager.setAppVisibility(r.appToken, false);
                 }
+                // 从ActivityManagerService向应用进程发送消息，告知应用进程处理栈顶Activity的onStop方法
                 r.app.thread.scheduleStopActivity(r.appToken, r.visible, r.configChangeFlags);
                 if (mService.isSleepingOrShuttingDown()) {
                     r.setSleeping(true);

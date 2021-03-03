@@ -1719,6 +1719,7 @@ public final class ActivityThread {
                                     (a.activity != null && a.activity.mFinished));
                     if (a.activity != null && !a.activity.mFinished) {
                         try {
+                            // 这里从应用进程发送消息给ActivityMangerService，告知执行栈顶Activity的onStop方法
                             am.activityIdle(a.token, a.createdConfig, stopProfiling);
                             a.createdConfig = null;
                         } catch (RemoteException ex) {
@@ -2520,6 +2521,7 @@ public final class ActivityThread {
                 }
 
                 activity.mCalled = false;
+                // 这里会回调Activity的onCreate方法
                 if (r.isPersistable()) {
                     mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
                 } else {
@@ -2533,6 +2535,7 @@ public final class ActivityThread {
                 r.activity = activity;
                 r.stopped = true;
                 if (!r.activity.mFinished) {
+                    // 回调Activity的onStart方法
                     activity.performStart();
                     r.stopped = false;
                 }
@@ -2630,12 +2633,13 @@ public final class ActivityThread {
         // Initialize before creating the activity
         WindowManagerGlobal.initialize();
 
-        // 准备创建Activity并回调onCreate
+        // 准备创建Activity并回调onCreate和onStart
         Activity a = performLaunchActivity(r, customIntent);
 
         if (a != null) {
             r.createdConfig = new Configuration(mConfiguration);
             Bundle oldState = r.state;
+            // 处理Activity的resume
             handleResumeActivity(r.token, false, r.isForward,
                     !r.activity.mFinished && !r.startsNotResumed);
 
@@ -3259,6 +3263,7 @@ public final class ActivityThread {
                     deliverResults(r, r.pendingResults);
                     r.pendingResults = null;
                 }
+                // 回调Activity的resume方法
                 r.activity.performResume();
 
                 EventLog.writeEvent(LOG_AM_ON_RESUME_CALLED,
@@ -3405,6 +3410,7 @@ public final class ActivityThread {
                 mNewActivities = r;
                 if (localLOGV) Slog.v(
                         TAG, "Scheduling idle handler for " + r);
+                // 准备执行栈顶Activity的onStop方法
                 Looper.myQueue().addIdleHandler(new Idler());
             }
             r.onlyLocalRequest = false;
@@ -3672,6 +3678,7 @@ public final class ActivityThread {
             // Next have the activity save its current state and managed dialogs...
             if (!r.activity.mFinished && saveState) {
                 if (r.state == null) {
+                    // 保存Activity状态
                     callCallActivityOnSaveInstanceState(r);
                 }
             }
@@ -3679,6 +3686,7 @@ public final class ActivityThread {
             if (!keepShown) {
                 try {
                     // Now we are idle.
+                    // 回调Activity的onStop方法
                     r.activity.performStop();
                 } catch (Exception e) {
                     if (!mInstrumentation.onException(r.activity, e)) {
@@ -5428,6 +5436,9 @@ public final class ActivityThread {
             RuntimeInit.setApplicationObject(mAppThread.asBinder());
             final IActivityManager mgr = ActivityManagerNative.getDefault();
             try {
+                // 这里通过mAppThread(实现了IApplicationThread接口)，之所以将mAppThread传递给ActivityMangerService，
+                // 是因为需要和ActivityMangerService建立通讯，即：应用进程为服务端，ActivityMangerService为客户端
+                // 到这里应用进程已经启动了，所以这里发送一个IPC消息告诉ActivityMangerService应用已经启动
                 mgr.attachApplication(mAppThread);
             } catch (RemoteException ex) {
                 // Ignore

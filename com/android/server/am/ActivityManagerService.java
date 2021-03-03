@@ -3340,7 +3340,7 @@ public final class ActivityManagerService extends ActivityManagerNative
                 debugFlags |= Zygote.DEBUG_ENABLE_CHECKJNI;
             }
             String jitDebugProperty = SystemProperties.get("debug.usejit");
-            if ("true".equals(jitDebu为什么我们平时都将ActivityThread称之为ui线程或者是主线程，这里可以看出，应用进程被创建之后首先执行的是ActivityThread的main方法，所以我们将ActivityThread成为主线程。gProperty)) {
+            if ("true".equals(jitDebugProperty)) {
                 debugFlags |= Zygote.DEBUG_ENABLE_JIT;
             } else if (!"false".equals(jitDebugProperty)) {
                 // If we didn't force disable by setting false, defer to the dalvik vm options.
@@ -6186,6 +6186,7 @@ public final class ActivityManagerService extends ActivityManagerNative
         // See if the top visible activity is waiting to run in this process...
         if (normalMode) {
             try {
+                // 由于应用进程已经启动，这里着手启动Activity
                 if (mStackSupervisor.attachApplicationLocked(app)) {
                     didSomething = true;
                 }
@@ -6244,6 +6245,11 @@ public final class ActivityManagerService extends ActivityManagerNative
         return true;
     }
 
+    /**
+     * 当应用进程启用后回调该方法
+     *
+     * @param thread 应用进程的Binder
+     */
     @Override
     public final void attachApplication(IApplicationThread thread) {
         synchronized (this) {

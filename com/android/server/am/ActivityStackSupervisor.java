@@ -107,6 +107,7 @@ import android.view.Display;
 import android.view.DisplayInfo;
 import android.view.InputEvent;
 import android.view.Surface;
+
 import com.android.internal.app.HeavyWeightSwitcherActivity;
 import com.android.internal.app.IVoiceInteractor;
 import com.android.internal.content.ReferrerIntent;
@@ -147,10 +148,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     public static final int HOME_STACK_ID = 0;
 
-    /** How long we wait until giving up on the last activity telling us it is idle. */
+    /**
+     * How long we wait until giving up on the last activity telling us it is idle.
+     */
     static final int IDLE_TIMEOUT = 10 * 1000;
 
-    /** How long we can hold the sleep wake lock before giving up. */
+    /**
+     * How long we can hold the sleep wake lock before giving up.
+     */
     static final int SLEEP_TIMEOUT = 5 * 1000;
 
     // How long we can hold the launch wake lock before giving up.
@@ -178,6 +183,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     // Activity actions an app cannot start if it uses a permission which is not granted.
     private static final ArrayMap<String, String> ACTION_TO_RUNTIME_PERMISSION =
             new ArrayMap<>();
+
     static {
         ACTION_TO_RUNTIME_PERMISSION.put(MediaStore.ACTION_IMAGE_CAPTURE,
                 Manifest.permission.CAMERA);
@@ -187,14 +193,22 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 Manifest.permission.CALL_PHONE);
     }
 
-    /** Action restriction: launching the activity is not restricted. */
+    /**
+     * Action restriction: launching the activity is not restricted.
+     */
     private static final int ACTIVITY_RESTRICTION_NONE = 0;
-    /** Action restriction: launching the activity is restricted by a permission. */
+    /**
+     * Action restriction: launching the activity is restricted by a permission.
+     */
     private static final int ACTIVITY_RESTRICTION_PERMISSION = 1;
-    /** Action restriction: launching the activity is restricted by an app op. */
+    /**
+     * Action restriction: launching the activity is restricted by an app op.
+     */
     private static final int ACTIVITY_RESTRICTION_APPOP = 2;
 
-    /** Status Bar Service **/
+    /**
+     * Status Bar Service
+     **/
     private IBinder mToken = new Binder();
     private IStatusBarService mStatusBarService;
     private IDevicePolicyManager mDevicePolicyManager;
@@ -209,68 +223,104 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     final ActivityStackSupervisorHandler mHandler;
 
-    /** Short cut */
+    /**
+     * Short cut
+     */
     WindowManagerService mWindowManager;
     DisplayManager mDisplayManager;
 
-    /** Identifier counter for all ActivityStacks */
+    /**
+     * Identifier counter for all ActivityStacks
+     */
     private int mLastStackId = HOME_STACK_ID;
 
-    /** Task identifier that activities are currently being started in.  Incremented each time a
-     * new task is created. */
+    /**
+     * Task identifier that activities are currently being started in.  Incremented each time a
+     * new task is created.
+     */
     private int mCurTaskId = 0;
 
-    /** The current user */
+    /**
+     * The current user
+     */
     private int mCurrentUser;
 
-    /** The stack containing the launcher app. Assumed to always be attached to
-     * Display.DEFAULT_DISPLAY. */
+    /**
+     * The stack containing the launcher app. Assumed to always be attached to
+     * Display.DEFAULT_DISPLAY.
+     */
     private ActivityStack mHomeStack;
 
-    /** The stack currently receiving input or launching the next activity. */
+    /**
+     * The stack currently receiving input or launching the next activity.
+     */
     private ActivityStack mFocusedStack;
 
-    /** If this is the same as mFocusedStack then the activity on the top of the focused stack has
+    /**
+     * If this is the same as mFocusedStack then the activity on the top of the focused stack has
      * been resumed. If stacks are changing position this will hold the old stack until the new
-     * stack becomes resumed after which it will be set to mFocusedStack. */
+     * stack becomes resumed after which it will be set to mFocusedStack.
+     */
     private ActivityStack mLastFocusedStack;
 
-    /** List of activities that are waiting for a new activity to become visible before completing
-     * whatever operation they are supposed to do. */
+    /**
+     * List of activities that are waiting for a new activity to become visible before completing
+     * whatever operation they are supposed to do.
+     */
     final ArrayList<ActivityRecord> mWaitingVisibleActivities = new ArrayList<>();
 
-    /** List of processes waiting to find out about the next visible activity. */
+    /**
+     * List of processes waiting to find out about the next visible activity.
+     */
     final ArrayList<IActivityManager.WaitResult> mWaitingActivityVisible = new ArrayList<>();
 
-    /** List of processes waiting to find out about the next launched activity. */
+    /**
+     * List of processes waiting to find out about the next launched activity.
+     */
     final ArrayList<IActivityManager.WaitResult> mWaitingActivityLaunched = new ArrayList<>();
 
-    /** List of activities that are ready to be stopped, but waiting for the next activity to
-     * settle down before doing so. */
+    /**
+     * List of activities that are ready to be stopped, but waiting for the next activity to
+     * settle down before doing so.
+     */
     final ArrayList<ActivityRecord> mStoppingActivities = new ArrayList<>();
 
-    /** List of activities that are ready to be finished, but waiting for the previous activity to
-     * settle down before doing so.  It contains ActivityRecord objects. */
+    /**
+     * List of activities that are ready to be finished, but waiting for the previous activity to
+     * settle down before doing so.  It contains ActivityRecord objects.
+     */
     final ArrayList<ActivityRecord> mFinishingActivities = new ArrayList<>();
 
-    /** List of activities that are in the process of going to sleep. */
+    /**
+     * List of activities that are in the process of going to sleep.
+     */
     final ArrayList<ActivityRecord> mGoingToSleepActivities = new ArrayList<>();
 
-    /** Used on user changes */
+    /**
+     * Used on user changes
+     */
     final ArrayList<UserState> mStartingUsers = new ArrayList<>();
 
-    /** Used to queue up any background users being started */
+    /**
+     * Used to queue up any background users being started
+     */
     final ArrayList<UserState> mStartingBackgroundUsers = new ArrayList<>();
 
-    /** Set to indicate whether to issue an onUserLeaving callback when a newly launched activity
-     * is being brought in front of us. */
+    /**
+     * Set to indicate whether to issue an onUserLeaving callback when a newly launched activity
+     * is being brought in front of us.
+     */
     boolean mUserLeaving = false;
 
-    /** Set when we have taken too long waiting to go to sleep. */
+    /**
+     * Set when we have taken too long waiting to go to sleep.
+     */
     boolean mSleepTimeout = false;
 
-    /** Indicates if we are running on a Leanback-only (TV) device. Only initialized after
-     * setWindowManager is called. **/
+    /**
+     * Indicates if we are running on a Leanback-only (TV) device. Only initialized after
+     * setWindowManager is called.
+     **/
     private boolean mLeanbackOnlyDevice;
 
     /**
@@ -288,23 +338,32 @@ public final class ActivityStackSupervisor implements DisplayListener {
      */
     PowerManager.WakeLock mGoingToSleep;
 
-    /** Stack id of the front stack when user switched, indexed by userId. */
+    /**
+     * Stack id of the front stack when user switched, indexed by userId.
+     */
     SparseIntArray mUserStackInFront = new SparseIntArray(2);
 
     // TODO: Add listener for removal of references.
-    /** Mapping from (ActivityStack/TaskStack).mStackId to their current state */
+    /**
+     * Mapping from (ActivityStack/TaskStack).mStackId to their current state
+     */
     private SparseArray<ActivityContainer> mActivityContainers = new SparseArray<>();
 
-    /** Mapping from displayId to display current state */
+    /**
+     * Mapping from displayId to display current state
+     */
     private final SparseArray<ActivityDisplay> mActivityDisplays = new SparseArray<>();
 
     InputManagerInternal mInputManagerInternal;
 
-    /** The chain of tasks in lockTask mode. The current frontmost task is at the top, and tasks
+    /**
+     * The chain of tasks in lockTask mode. The current frontmost task is at the top, and tasks
      * may be finished until there is only one entry left. If this is empty the system is not
-     * in lockTask mode. */
+     * in lockTask mode.
+     */
     ArrayList<TaskRecord> mLockTaskModeTasks = new ArrayList<>();
-    /** Store the current lock task mode. Possible values:
+    /**
+     * Store the current lock task mode. Possible values:
      * {@link ActivityManager#LOCK_TASK_MODE_NONE}, {@link ActivityManager#LOCK_TASK_MODE_LOCKED},
      * {@link ActivityManager#LOCK_TASK_MODE_PINNED}
      */
@@ -316,7 +375,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     final ArrayList<PendingActivityLaunch> mPendingActivityLaunches = new ArrayList<>();
 
-    /** Used to keep resumeTopActivityLocked() from being entered recursively */
+    /**
+     * Used to keep resumeTopActivityLocked() from being entered recursively
+     */
     boolean inResumeTopActivity;
 
     /**
@@ -330,7 +391,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         final ActivityStack stack;
 
         PendingActivityLaunch(ActivityRecord _r, ActivityRecord _sourceRecord,
-                int _startFlags, ActivityStack _stack) {
+                              int _startFlags, ActivityStack _stack) {
             r = _r;
             sourceRecord = _sourceRecord;
             startFlags = _startFlags;
@@ -349,7 +410,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
      * initialized.  So we initialize our wakelocks afterwards.
      */
     void initPowerManagement() {
-        PowerManager pm = (PowerManager)mService.mContext.getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = (PowerManager) mService.mContext.getSystemService(Context.POWER_SERVICE);
         mGoingToSleep = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Sleep");
         mLaunchingActivity = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "*launch*");
         mLaunchingActivity.setReferenceCounted(false);
@@ -361,7 +422,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         synchronized (mService) {
             if (mStatusBarService == null) {
                 mStatusBarService = IStatusBarService.Stub.asInterface(
-                    ServiceManager.checkService(Context.STATUS_BAR_SERVICE));
+                        ServiceManager.checkService(Context.STATUS_BAR_SERVICE));
                 if (mStatusBarService == null) {
                     Slog.w("StatusBarManager", "warning: no STATUS_BAR_SERVICE");
                 }
@@ -374,7 +435,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         synchronized (mService) {
             if (mDevicePolicyManager == null) {
                 mDevicePolicyManager = IDevicePolicyManager.Stub.asInterface(
-                    ServiceManager.checkService(Context.DEVICE_POLICY_SERVICE));
+                        ServiceManager.checkService(Context.DEVICE_POLICY_SERVICE));
                 if (mDevicePolicyManager == null) {
                     Slog.w(TAG, "warning: no DEVICE_POLICY_SERVICE");
                 }
@@ -388,7 +449,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
             mWindowManager = wm;
 
             mDisplayManager =
-                    (DisplayManager)mService.mContext.getSystemService(Context.DISPLAY_SERVICE);
+                    (DisplayManager) mService.mContext.getSystemService(Context.DISPLAY_SERVICE);
             mDisplayManager.registerDisplayListener(this, null);
 
             Display[] displays = mDisplayManager.getDisplays();
@@ -424,9 +485,11 @@ public final class ActivityStackSupervisor implements DisplayListener {
         return mLastFocusedStack;
     }
 
-    /** Top of all visible stacks is/should always be equal to the focused stack.
+    /**
+     * Top of all visible stacks is/should always be equal to the focused stack.
      * Use {@link ActivityStack#isStackVisibleLocked} to determine if a specific
-     * stack is visible or not. */
+     * stack is visible or not.
+     */
     boolean isFrontStack(ActivityStack stack) {
         if (stack == null) {
             return false;
@@ -477,7 +540,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
         }
     }
 
-    /** Returns true if the focus activity was adjusted to the home stack top activity. */
+    /**
+     * Returns true if the focus activity was adjusted to the home stack top activity.
+     */
     boolean moveHomeStackTaskToTop(int homeStackTaskType, String reason) {
         if (homeStackTaskType == RECENTS_ACTIVITY_TYPE) {
             mWindowManager.showRecentApps();
@@ -524,7 +589,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     /**
      * Returns a {@link TaskRecord} for the input id if available. Null otherwise.
-     * @param id Id of the task we would like returned.
+     *
+     * @param id                 Id of the task we would like returned.
      * @param restoreFromRecents If the id was not in the active list, but was found in recents,
      *                           restore the task from recents to the active list.
      */
@@ -607,6 +673,12 @@ public final class ActivityStackSupervisor implements DisplayListener {
         return resumedActivity;
     }
 
+
+    /**
+     * 应用进程启动后，会回调该方法继续完成Activity的启动处理
+     *
+     * @param app 应用进程的信息
+     */
     boolean attachApplicationLocked(ProcessRecord app) throws RemoteException {
         final String processName = app.processName;
         boolean didSomething = false;
@@ -622,12 +694,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     if (hr.app == null && app.uid == hr.info.applicationInfo.uid
                             && processName.equals(hr.processName)) {
                         try {
+                            // 开始Activity的启动
                             if (realStartActivityLocked(hr, app, true, true)) {
                                 didSomething = true;
                             }
                         } catch (RemoteException e) {
                             Slog.w(TAG, "Exception in new application when starting activity "
-                                  + hr.intent.getComponent().flattenToShortString(), e);
+                                    + hr.intent.getComponent().flattenToShortString(), e);
                             throw e;
                         }
                     }
@@ -651,7 +724,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 final ActivityRecord resumedActivity = stack.mResumedActivity;
                 if (resumedActivity == null || !resumedActivity.idle) {
                     if (DEBUG_STATES) Slog.d(TAG_STATES, "allResumedActivitiesIdle: stack="
-                             + stack.mStackId + " " + resumedActivity + " not idle");
+                            + stack.mStackId + " " + resumedActivity + " not idle");
                     return false;
                 }
             }
@@ -675,7 +748,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         // TODO: Not sure if this should check if all Paused are complete too.
         if (DEBUG_STACK) Slog.d(TAG_STACK,
                 "allResumedActivitiesComplete: mLastFocusedStack changing from=" +
-                mLastFocusedStack + " to=" + mFocusedStack);
+                        mLastFocusedStack + " to=" + mFocusedStack);
         mLastFocusedStack = mFocusedStack;
         return true;
     }
@@ -700,6 +773,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     /**
      * Pause all activities in either all of the stacks or just the back stacks.
+     *
      * @param userLeaving Passed to pauseActivity() to indicate whether to call onUserLeaving().
      * @return true if any activity was paused as a result of this call.
      */
@@ -742,7 +816,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     void pauseChildStacks(ActivityRecord parent, boolean userLeaving, boolean uiSleeping,
-            boolean resuming, boolean dontWait) {
+                          boolean resuming, boolean dontWait) {
         // TODO: Put all stacks in supervisor and iterate through them instead.
         for (int displayNdx = mActivityDisplays.size() - 1; displayNdx >= 0; --displayNdx) {
             ArrayList<ActivityStack> stacks = mActivityDisplays.valueAt(displayNdx).mStacks;
@@ -762,7 +836,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     void sendWaitingVisibleReportLocked(ActivityRecord r) {
         boolean changed = false;
-        for (int i = mWaitingActivityVisible.size()-1; i >= 0; i--) {
+        for (int i = mWaitingActivityVisible.size() - 1; i >= 0; i--) {
             WaitResult w = mWaitingActivityVisible.get(i);
             if (w.who == null) {
                 changed = true;
@@ -780,7 +854,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     void reportActivityLaunchedLocked(boolean timeout, ActivityRecord r,
-            long thisTime, long totalTime) {
+                                      long thisTime, long totalTime) {
         boolean changed = false;
         for (int i = mWaitingActivityLaunched.size() - 1; i >= 0; i--) {
             WaitResult w = mWaitingActivityLaunched.remove(i);
@@ -861,14 +935,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     ActivityInfo resolveActivity(Intent intent, String resolvedType, int startFlags,
-            ProfilerInfo profilerInfo, int userId) {
+                                 ProfilerInfo profilerInfo, int userId) {
         // Collect information about the target of the Intent.
         ActivityInfo aInfo;
         try {
             ResolveInfo rInfo =
-                AppGlobals.getPackageManager().resolveIntent(
-                        intent, resolvedType,
-                        PackageManager.MATCH_DEFAULT_ONLY
+                    AppGlobals.getPackageManager().resolveIntent(
+                            intent, resolvedType,
+                            PackageManager.MATCH_DEFAULT_ONLY
                                     | ActivityManagerService.STOCK_PM_FLAGS, userId);
             aInfo = rInfo != null ? rInfo.activityInfo : null;
         } catch (RemoteException e) {
@@ -884,13 +958,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     aInfo.applicationInfo.packageName, aInfo.name));
 
             // Don't debug things in the system process
-            if ((startFlags&ActivityManager.START_FLAG_DEBUG) != 0) {
+            if ((startFlags & ActivityManager.START_FLAG_DEBUG) != 0) {
                 if (!aInfo.processName.equals("system")) {
                     mService.setDebugApp(aInfo.processName, true, false);
                 }
             }
 
-            if ((startFlags&ActivityManager.START_FLAG_OPENGL_TRACES) != 0) {
+            if ((startFlags & ActivityManager.START_FLAG_OPENGL_TRACES) != 0) {
                 if (!aInfo.processName.equals("system")) {
                     mService.setOpenGlTraceApp(aInfo.applicationInfo, aInfo.processName);
                 }
@@ -925,12 +999,12 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     final int startActivityMayWait(IApplicationThread caller, int callingUid,
-            String callingPackage, Intent intent, String resolvedType,
-            IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
-            IBinder resultTo, String resultWho, int requestCode, int startFlags,
-            ProfilerInfo profilerInfo, WaitResult outResult, Configuration config,
-            Bundle options, boolean ignoreTargetSecurity, int userId,
-            IActivityContainer iContainer, TaskRecord inTask) {
+                                   String callingPackage, Intent intent, String resolvedType,
+                                   IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
+                                   IBinder resultTo, String resultWho, int requestCode, int startFlags,
+                                   ProfilerInfo profilerInfo, WaitResult outResult, Configuration config,
+                                   Bundle options, boolean ignoreTargetSecurity, int userId,
+                                   IActivityContainer iContainer, TaskRecord inTask) {
         // Refuse possible leaked file descriptors
         if (intent != null && intent.hasFileDescriptors()) {
             throw new IllegalArgumentException("File descriptors passed in Intent");
@@ -945,7 +1019,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         ActivityInfo aInfo =
                 resolveActivity(intent, resolvedType, startFlags, profilerInfo, userId);
 
-        ActivityContainer container = (ActivityContainer)iContainer;
+        ActivityContainer container = (ActivityContainer) iContainer;
         synchronized (mService) {
             if (container != null && container.mParentActivity != null &&
                     container.mParentActivity.state != RESUMED) {
@@ -978,13 +1052,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
             if (aInfo != null &&
                     (aInfo.applicationInfo.privateFlags
-                            &ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
+                            & ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
                 // This may be a heavy-weight process!  Check to see if we already
                 // have another, different heavy-weight process running.
                 if (aInfo.processName.equals(aInfo.applicationInfo.packageName)) {
                     if (mService.mHeavyWeightProcess != null &&
                             (mService.mHeavyWeightProcess.info.uid != aInfo.applicationInfo.uid ||
-                            !mService.mHeavyWeightProcess.processName.equals(aInfo.processName))) {
+                                    !mService.mHeavyWeightProcess.processName.equals(aInfo.processName))) {
                         int appCallingUid = callingUid;
                         if (caller != null) {
                             ProcessRecord callerApp = mService.getRecordForAppLocked(caller);
@@ -992,8 +1066,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                                 appCallingUid = callerApp.info.uid;
                             } else {
                                 Slog.w(TAG, "Unable to find app for caller " + caller
-                                      + " (pid=" + callingPid + ") when starting: "
-                                      + intent.toString());
+                                        + " (pid=" + callingPid + ") when starting: "
+                                        + intent.toString());
                                 ActivityOptions.abort(options);
                                 return ActivityManager.START_PERMISSION_DENIED;
                             }
@@ -1001,9 +1075,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
                         IIntentSender target = mService.getIntentSenderLocked(
                                 ActivityManager.INTENT_SENDER_ACTIVITY, "android",
-                                appCallingUid, userId, null, null, 0, new Intent[] { intent },
-                                new String[] { resolvedType }, PendingIntent.FLAG_CANCEL_CURRENT
-                                | PendingIntent.FLAG_ONE_SHOT, null);
+                                appCallingUid, userId, null, null, 0, new Intent[]{intent},
+                                new String[]{resolvedType}, PendingIntent.FLAG_CANCEL_CURRENT
+                                        | PendingIntent.FLAG_ONE_SHOT, null);
 
                         Intent newIntent = new Intent();
                         if (requestCode >= 0) {
@@ -1032,10 +1106,10 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         componentSpecified = true;
                         try {
                             ResolveInfo rInfo =
-                                AppGlobals.getPackageManager().resolveIntent(
-                                        intent, null,
-                                        PackageManager.MATCH_DEFAULT_ONLY
-                                        | ActivityManagerService.STOCK_PM_FLAGS, userId);
+                                    AppGlobals.getPackageManager().resolveIntent(
+                                            intent, null,
+                                            PackageManager.MATCH_DEFAULT_ONLY
+                                                    | ActivityManagerService.STOCK_PM_FLAGS, userId);
                             aInfo = rInfo != null ? rInfo.activityInfo : null;
                             aInfo = mService.getActivityInfoForUser(aInfo, userId);
                         } catch (RemoteException e) {
@@ -1101,8 +1175,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     final int startActivities(IApplicationThread caller, int callingUid, String callingPackage,
-            Intent[] intents, String[] resolvedTypes, IBinder resultTo,
-            Bundle options, int userId) {
+                              Intent[] intents, String[] resolvedTypes, IBinder resultTo,
+                              Bundle options, int userId) {
         if (intents == null) {
             throw new NullPointerException("intents is null");
         }
@@ -1127,7 +1201,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         try {
             synchronized (mService) {
                 ActivityRecord[] outActivity = new ActivityRecord[1];
-                for (int i=0; i<intents.length; i++) {
+                for (int i = 0; i < intents.length; i++) {
                     Intent intent = intents[i];
                     if (intent == null) {
                         continue;
@@ -1150,13 +1224,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
                     if (aInfo != null &&
                             (aInfo.applicationInfo.privateFlags
-                                    & ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE)  != 0) {
+                                    & ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
                         throw new IllegalArgumentException(
                                 "FLAG_CANT_SAVE_STATE not supported here");
                     }
 
                     Bundle theseOptions;
-                    if (options != null && i == intents.length-1) {
+                    if (options != null && i == intents.length - 1) {
                         theseOptions = options;
                     } else {
                         theseOptions = null;
@@ -1180,7 +1254,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     final boolean realStartActivityLocked(ActivityRecord r,
-            ProcessRecord app, boolean andResume, boolean checkConfig)
+                                          ProcessRecord app, boolean andResume, boolean checkConfig)
             throws RemoteException {
 
         if (andResume) {
@@ -1237,7 +1311,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
             }
             if (DEBUG_SWITCH) Slog.v(TAG_SWITCH,
                     "Launching: " + r + " icicle=" + r.icicle + " with results=" + results
-                    + " newIntents=" + newIntents + " andResume=" + andResume);
+                            + " newIntents=" + newIntents + " andResume=" + andResume);
             if (andResume) {
                 EventLog.writeEvent(EventLogTags.AM_RESTART_ACTIVITY,
                         r.userId, System.identityHashCode(r),
@@ -1284,7 +1358,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 app.pendingUiClean = true;
             }
             app.forceProcessStateUpTo(mService.mTopProcessState);
-            // 这里通过IApplicationThread -> AppicationThread：实现SystemServer进程向应用进程的通讯
+            // 这里通过ActivityManagerService -> IApplicationThread：实现SystemServer进程向应用进程的通讯
             // 告知应用进程可以启动Activity了
             app.thread.scheduleLaunchActivity(new Intent(r.intent), r.appToken,
                     System.identityHashCode(r), r.info, new Configuration(mService.mConfiguration),
@@ -1292,7 +1366,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     task.voiceInteractor, app.repProcState, r.icicle, r.persistentState, results,
                     newIntents, !andResume, mService.isNextTransitionForward(), profilerInfo);
 
-            if ((app.info.privateFlags&ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
+            if ((app.info.privateFlags & ApplicationInfo.PRIVATE_FLAG_CANT_SAVE_STATE) != 0) {
                 // This may be a heavy-weight process!  Note that the package
                 // manager will ensure that only activity can run in the main
                 // process of the .apk, which is the only thing that will be
@@ -1317,8 +1391,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 // This is the second time we failed -- finish activity
                 // and give up.
                 Slog.e(TAG, "Second failure launching "
-                      + r.intent.getComponent().flattenToShortString()
-                      + ", giving up", e);
+                        + r.intent.getComponent().flattenToShortString()
+                        + ", giving up", e);
                 mService.appDiedLocked(app);
                 stack.requestFinishActivityLocked(r.appToken, Activity.RESULT_CANCELED, null,
                         "2nd-crash", false);
@@ -1334,7 +1408,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         r.launchFailed = false;
         if (stack.updateLRUListLocked(r)) {
             Slog.w(TAG, "Activity " + r
-                  + " being launched, but already in LRU list");
+                    + " being launched, but already in LRU list");
         }
 
         if (andResume) {
@@ -1367,8 +1441,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
         return true;
     }
 
+    /**
+     * 该方法首先会检测应用进程是否已经启动
+     * - 如果还没启动，则先启动Activity所属的应用进程
+     * - 若已启动，则执行启动Activity
+     */
     void startSpecificActivityLocked(ActivityRecord r,
-            boolean andResume, boolean checkConfig) {
+                                     boolean andResume, boolean checkConfig) {
         // Is this activity's application already running?
         ProcessRecord app = mService.getProcessRecordLocked(r.processName,
                 r.info.applicationInfo.uid, true);
@@ -1377,7 +1456,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         if (app != null && app.thread != null) {
             try {
-                if ((r.info.flags&ActivityInfo.FLAG_MULTIPROCESS) == 0
+                if ((r.info.flags & ActivityInfo.FLAG_MULTIPROCESS) == 0
                         || !"android".equals(r.info.packageName)) {
                     // Don't add this if it is a platform component that is marked
                     // to run in multiple processes, because this is actually
@@ -1403,13 +1482,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     final int startActivityLocked(IApplicationThread caller,
-            Intent intent, String resolvedType, ActivityInfo aInfo,
-            IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
-            IBinder resultTo, String resultWho, int requestCode,
-            int callingPid, int callingUid, String callingPackage,
-            int realCallingPid, int realCallingUid, int startFlags, Bundle options,
-            boolean ignoreTargetSecurity, boolean componentSpecified, ActivityRecord[] outActivity,
-            ActivityContainer container, TaskRecord inTask) {
+                                  Intent intent, String resolvedType, ActivityInfo aInfo,
+                                  IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor,
+                                  IBinder resultTo, String resultWho, int requestCode,
+                                  int callingPid, int callingUid, String callingPackage,
+                                  int realCallingPid, int realCallingUid, int startFlags, Bundle options,
+                                  boolean ignoreTargetSecurity, boolean componentSpecified, ActivityRecord[] outActivity,
+                                  ActivityContainer container, TaskRecord inTask) {
         int err = ActivityManager.START_SUCCESS;
 
         // 获取进程信息
@@ -1421,8 +1500,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 callingUid = callerApp.info.uid;
             } else {
                 Slog.w(TAG, "Unable to find app for caller " + caller
-                      + " (pid=" + callingPid + ") when starting: "
-                      + intent.toString());
+                        + " (pid=" + callingPid + ") when starting: "
+                        + intent.toString());
                 err = ActivityManager.START_PERMISSION_DENIED;
             }
         }
@@ -1433,9 +1512,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
             Slog.i(TAG, "START u" + userId + " {" + intent.toShortString(true, true, true, false)
                     + "} from uid " + callingUid
                     + " on display " + (container == null ? (mFocusedStack == null ?
-                            Display.DEFAULT_DISPLAY : mFocusedStack.mDisplayId) :
-                            (container.mActivityDisplay == null ? Display.DEFAULT_DISPLAY :
-                                    container.mActivityDisplay.mDisplayId)));
+                    Display.DEFAULT_DISPLAY : mFocusedStack.mDisplayId) :
+                    (container.mActivityDisplay == null ? Display.DEFAULT_DISPLAY :
+                            container.mActivityDisplay.mDisplayId)));
         }
 
         ActivityRecord sourceRecord = null;
@@ -1518,7 +1597,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                             intent.getComponent(), intent, resolvedType)) {
                         Slog.w(TAG,
                                 "Activity being started in current voice task does not support voice: "
-                                + intent);
+                                        + intent);
                         err = ActivityManager.START_NOT_VOICE_COMPATIBLE;
                     }
                 } catch (RemoteException e) {
@@ -1536,7 +1615,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         intent, resolvedType)) {
                     Slog.w(TAG,
                             "Activity being started in new voice task does not support: "
-                            + intent);
+                                    + intent);
                     err = ActivityManager.START_NOT_VOICE_COMPATIBLE;
                 }
             } catch (RemoteException e) {
@@ -1550,8 +1629,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
         if (err != ActivityManager.START_SUCCESS) {
             if (resultRecord != null) {
                 resultStack.sendActivityResultLocked(-1,
-                    resultRecord, resultWho, requestCode,
-                    Activity.RESULT_CANCELED, null);
+                        resultRecord, resultWho, requestCode,
+                        Activity.RESULT_CANCELED, null);
             }
             ActivityOptions.abort(options);
             return err;
@@ -1601,7 +1680,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         + " from " + callerApp + " (pid=" + callingPid
                         + ", uid=" + callingUid + ")"
                         + " requires " + AppOpsManager.permissionToOp(
-                                ACTION_TO_RUNTIME_PERMISSION.get(intent.getAction()));
+                        ACTION_TO_RUNTIME_PERMISSION.get(intent.getAction()));
                 Slog.w(TAG, message);
                 abort = true;
             } else if (componentRestriction == ACTIVITY_RESTRICTION_APPOP) {
@@ -1695,7 +1774,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     private int getComponentRestrictionForCallingPackage(ActivityInfo activityInfo,
-            String callingPackage, int callingPid, int callingUid, boolean ignoreTargetSecurity) {
+                                                         String callingPackage, int callingPid, int callingUid, boolean ignoreTargetSecurity) {
         if (activityInfo.permission == null) {
             return ACTIVITY_RESTRICTION_NONE;
         }
@@ -1722,7 +1801,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     private int getActionRestrictionForCallingPackage(String action,
-            String callingPackage, int callingPid, int callingUid) {
+                                                      String callingPackage, int callingPid, int callingUid) {
         if (action == null) {
             return ACTIVITY_RESTRICTION_NONE;
         }
@@ -1778,10 +1857,10 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     if (mFocusedStack != stack) {
                         if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG_FOCUS,
                                 "computeStackFocus: Setting " + "focused stack to r=" + r
-                                + " task=" + task);
+                                        + " task=" + task);
                     } else {
                         if (DEBUG_FOCUS || DEBUG_STACK) Slog.d(TAG_FOCUS,
-                            "computeStackFocus: Focused stack already=" + mFocusedStack);
+                                "computeStackFocus: Focused stack already=" + mFocusedStack);
                     }
                 }
                 return stack;
@@ -1835,8 +1914,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     final int startActivityUncheckedLocked(final ActivityRecord r, ActivityRecord sourceRecord,
-            IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor, int startFlags,
-            boolean doResume, Bundle options, TaskRecord inTask) {
+                                           IVoiceInteractionSession voiceSession, IVoiceInteractor voiceInteractor, int startFlags,
+                                           boolean doResume, Bundle options, TaskRecord inTask) {
         final Intent intent = r.intent;
         final int callingUid = r.launchedFromUid;
 
@@ -1928,7 +2007,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
         // being launched is the same as the one making the call...  or, as
         // a special case, if we do not know the caller then we count the
         // current top activity as the caller.
-        if ((startFlags&ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
+        if ((startFlags & ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
             ActivityRecord checkedCaller = sourceRecord;
             if (checkedCaller == null) {
                 checkedCaller = mFocusedStack.topRunningNonDelayedActivityLocked(notTop);
@@ -1975,15 +2054,15 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 final int flagsOfInterest = Intent.FLAG_ACTIVITY_NEW_TASK
                         | Intent.FLAG_ACTIVITY_MULTIPLE_TASK | Intent.FLAG_ACTIVITY_NEW_DOCUMENT
                         | Intent.FLAG_ACTIVITY_RETAIN_IN_RECENTS;
-                launchFlags = (launchFlags&~flagsOfInterest)
-                        | (baseIntent.getFlags()&flagsOfInterest);
+                launchFlags = (launchFlags & ~flagsOfInterest)
+                        | (baseIntent.getFlags() & flagsOfInterest);
                 intent.setFlags(launchFlags);
                 inTask.setIntent(r);
                 addingToTask = true;
 
-            // If the task is not empty and the caller is asking to start it as the root
-            // of a new task, then we don't actually want to start this on the task.  We
-            // will bring the task to the front, and possibly give it a new intent.
+                // If the task is not empty and the caller is asking to start it as the root
+                // of a new task, then we don't actually want to start this on the task.  We
+                // will bring the task to the front, and possibly give it a new intent.
             } else if ((launchFlags & Intent.FLAG_ACTIVITY_NEW_TASK) != 0) {
                 addingToTask = false;
 
@@ -2074,7 +2153,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     // cleared out and the device would otherwise leave the locked task.
                     if (isLockTaskModeViolation(intentActivity.task,
                             (launchFlags & (FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK))
-                            == (FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK))) {
+                                    == (FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK))) {
                         showLockTaskToast();
                         Slog.e(TAG, "startActivityUnchecked: Attempt to violate Lock Task Mode");
                         return ActivityManager.START_RETURN_LOCK_TASK_MODE_VIOLATION;
@@ -2131,7 +2210,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
                     // If the caller has requested that the target task be
                     // reset, then do so.
-                    if ((launchFlags&Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) != 0) {
+                    if ((launchFlags & Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) != 0) {
                         intentActivity = targetStack.resetTaskIfNeededLocked(intentActivity, r);
                     }
                     if ((startFlags & ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
@@ -2204,7 +2283,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         // If the top activity in the task is the root
                         // activity, deliver this new intent to it if it
                         // desires.
-                        if (((launchFlags&Intent.FLAG_ACTIVITY_SINGLE_TOP) != 0 || launchSingleTop)
+                        if (((launchFlags & Intent.FLAG_ACTIVITY_SINGLE_TOP) != 0 || launchSingleTop)
                                 && intentActivity.realActivity.equals(r.realActivity)) {
                             ActivityStack.logStartActivity(EventLogTags.AM_NEW_INTENT, r,
                                     intentActivity.task);
@@ -2220,7 +2299,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                             addingToTask = true;
                             sourceRecord = intentActivity;
                         }
-                    } else if ((launchFlags&Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) == 0) {
+                    } else if ((launchFlags & Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED) == 0) {
                         // In this case an activity is being launched in to an
                         // existing task, without resetting that task.  This
                         // is typically the situation of launching an activity
@@ -2274,7 +2353,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 if (top.realActivity.equals(r.realActivity) && top.userId == r.userId) {
                     if (top.app != null && top.app.thread != null) {
                         if ((launchFlags & Intent.FLAG_ACTIVITY_SINGLE_TOP) != 0
-                            || launchSingleTop || launchSingleTask) {
+                                || launchSingleTop || launchSingleTask) {
                             ActivityStack.logStartActivity(EventLogTags.AM_NEW_INTENT, top,
                                     top.task);
                             // For paranoia, make sure we have correctly
@@ -2284,7 +2363,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                                 resumeTopActivitiesLocked();
                             }
                             ActivityOptions.abort(options);
-                            if ((startFlags&ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
+                            if ((startFlags & ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
                                 // We don't need to start a new activity, and
                                 // the client said not to do anything if that
                                 // is the case, so this is it!
@@ -2356,7 +2435,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 targetStack.moveTaskToFrontLocked(sourceTask, noAnimation, options,
                         r.appTimeTracker, "sourceTaskToFront");
             }
-            if (!addingToTask && (launchFlags&Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0) {
+            if (!addingToTask && (launchFlags & Intent.FLAG_ACTIVITY_CLEAR_TOP) != 0) {
                 // In this case, we are adding the activity to an existing
                 // task, but the caller has asked to clear that task if the
                 // activity is already running.
@@ -2375,7 +2454,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     return ActivityManager.START_DELIVERED_TO_TOP;
                 }
             } else if (!addingToTask &&
-                    (launchFlags&Intent.FLAG_ACTIVITY_REORDER_TO_FRONT) != 0) {
+                    (launchFlags & Intent.FLAG_ACTIVITY_REORDER_TO_FRONT) != 0) {
                 // In this case, we are launching an activity in our own task
                 // that may already be running somewhere in the history, and
                 // we want to shuffle it to the front of the stack if so.
@@ -2418,7 +2497,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 if ((launchFlags & Intent.FLAG_ACTIVITY_SINGLE_TOP) != 0
                         || launchSingleTop || launchSingleTask) {
                     ActivityStack.logStartActivity(EventLogTags.AM_NEW_INTENT, top, top.task);
-                    if ((startFlags&ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
+                    if ((startFlags & ActivityManager.START_FLAG_ONLY_IF_NEEDED) != 0) {
                         // We don't need to start a new activity, and
                         // the client said not to do anything if that
                         // is the case, so this is it!
@@ -2448,7 +2527,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
             targetStack.moveToFront("addingToTopTask");
             ActivityRecord prev = targetStack.topActivity();
             r.setTask(prev != null ? prev.task : targetStack.createTaskRecord(getNextTaskId(),
-                            r.info, intent, null, null, true), null);
+                    r.info, intent, null, null, true), null);
             mWindowManager.moveTaskToTop(r.task.taskId);
             if (DEBUG_TASKS) Slog.v(TAG_TASKS, "Starting new activity " + r
                     + " in new guessed " + r.task);
@@ -2508,6 +2587,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     /**
      * Called when the frontmost task is idle.
+     *
      * @return the state of mService.mBooting before this was called.
      */
     private boolean checkFinishBootingLocked() {
@@ -2524,9 +2604,12 @@ public final class ActivityStackSupervisor implements DisplayListener {
         return booting;
     }
 
+    /**
+     * 由ActivityManagerService调用，准备执行栈顶Activity的onStop方法
+     */
     // Checked.
     final ActivityRecord activityIdleInternalLocked(final IBinder token, boolean fromTimeout,
-            Configuration config) {
+                                                    Configuration config) {
         if (DEBUG_ALL) Slog.v(TAG, "Activity idle: " + token);
 
         ArrayList<ActivityRecord> stops = null;
@@ -2604,6 +2687,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 if (r.finishing) {
                     stack.finishCurrentActivityLocked(r, ActivityStack.FINISH_IMMEDIATELY, false);
                 } else {
+                    // 回调Activity的onStop方法
                     stack.stopActivityLocked(r);
                 }
             }
@@ -2675,7 +2759,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
      * @return true if some activity was finished (or would have finished if doit were true).
      */
     boolean finishDisabledPackageActivitiesLocked(String packageName, Set<String> filterByClasses,
-            boolean doit, boolean evenPersistent, int userId) {
+                                                  boolean doit, boolean evenPersistent, int userId) {
         boolean didSomething = false;
         for (int displayNdx = mActivityDisplays.size() - 1; displayNdx >= 0; --displayNdx) {
             final ArrayList<ActivityStack> stacks = mActivityDisplays.valueAt(displayNdx).mStacks;
@@ -2730,7 +2814,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     boolean resumeTopActivitiesLocked(ActivityStack targetStack, ActivityRecord target,
-            Bundle targetOptions) {
+                                      Bundle targetOptions) {
         if (targetStack == null) {
             targetStack = mFocusedStack;
         }
@@ -2846,7 +2930,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     ActivityContainer createVirtualActivityContainer(ActivityRecord parentActivity,
-            IActivityContainerCallback callback) {
+                                                     IActivityContainerCallback callback) {
         ActivityContainer activityContainer =
                 new VirtualActivityContainer(parentActivity, callback);
         mActivityContainers.put(activityContainer.mStackId, activityContainer);
@@ -2867,7 +2951,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     void deleteActivityContainer(IActivityContainer container) {
-        ActivityContainer activityContainer = (ActivityContainer)container;
+        ActivityContainer activityContainer = (ActivityContainer) container;
         if (activityContainer != null) {
             if (DEBUG_CONTAINERS) Slog.d(TAG_CONTAINERS,
                     "deleteActivityContainer: callers=" + Debug.getCallers(4));
@@ -2904,9 +2988,11 @@ public final class ActivityStackSupervisor implements DisplayListener {
         }
     }
 
-    /** Makes sure the input task is in a stack with the specified bounds by either resizing the
+    /**
+     * Makes sure the input task is in a stack with the specified bounds by either resizing the
      * current task stack if it only has one entry, moving the task to a stack that matches the
-     * bounds, or creating a new stack with the required bounds. Also, makes the task resizeable.*/
+     * bounds, or creating a new stack with the required bounds. Also, makes the task resizeable.
+     */
     void resizeTaskLocked(TaskRecord task, Rect bounds) {
         task.mResizeable = true;
         final ActivityStack currentStack = task.stack;
@@ -3245,7 +3331,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         final ActivityRecord top = topRunningActivityLocked();
         if (top == null || top == r || (visible == isVisible)) {
-            if (DEBUG_VISIBLE_BEHIND) Slog.d(TAG_VISIBLE_BEHIND, "requestVisibleBehind: quick return");
+            if (DEBUG_VISIBLE_BEHIND)
+                Slog.d(TAG_VISIBLE_BEHIND, "requestVisibleBehind: quick return");
             stack.setVisibleBehindActivity(visible ? r : null);
             return true;
         }
@@ -3255,16 +3342,16 @@ public final class ActivityStackSupervisor implements DisplayListener {
             // Let the caller know that it can't be seen.
             if (DEBUG_VISIBLE_BEHIND) Slog.d(TAG_VISIBLE_BEHIND,
                     "requestVisibleBehind: returning top.fullscreen=" + top.fullscreen
-                    + " top.state=" + top.state + " top.app=" + top.app + " top.app.thread="
-                    + top.app.thread);
+                            + " top.state=" + top.state + " top.app=" + top.app + " top.app.thread="
+                            + top.app.thread);
             return false;
         } else if (!visible && stack.getVisibleBehindActivity() != r) {
             // Only the activity set as currently visible behind should actively reset its
             // visible behind state.
             if (DEBUG_VISIBLE_BEHIND) Slog.d(TAG_VISIBLE_BEHIND,
                     "requestVisibleBehind: returning visible=" + visible
-                    + " stack.getVisibleBehindActivity()=" + stack.getVisibleBehindActivity()
-                    + " r=" + r);
+                            + " stack.getVisibleBehindActivity()=" + stack.getVisibleBehindActivity()
+                            + " r=" + r);
             return false;
         }
 
@@ -3428,14 +3515,17 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
     /**
      * Add background users to send boot completed events to.
+     *
      * @param userId The user being started in the background
-     * @param uss The state object for the user.
+     * @param uss    The state object for the user.
      */
     public void startBackgroundUserLocked(int userId, UserState uss) {
         mStartingBackgroundUsers.add(uss);
     }
 
-    /** Checks whether the userid is a profile of the current user. */
+    /**
+     * Checks whether the userid is a profile of the current user.
+     */
     boolean isCurrentProfileLocked(int userId) {
         if (userId == mCurrentUser) return true;
         for (int i = 0; i < mService.mCurrentProfileIds.length; i++) {
@@ -3492,16 +3582,16 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         final ActivityRecord pausing = stack.mPausingActivity;
                         if (pausing != null && pausing == r) Slog.e(TAG,
                                 "validateTop...: top stack has pausing activity r=" + r
-                                + " state=" + state);
+                                        + " state=" + state);
                         if (state != INITIALIZING && state != RESUMED) Slog.e(TAG,
                                 "validateTop...: activity in front not resumed r=" + r
-                                + " state=" + state);
+                                        + " state=" + state);
                     }
                 } else {
                     final ActivityRecord resumed = stack.mResumedActivity;
                     if (resumed != null && resumed == r) Slog.e(TAG,
                             "validateTop...: back stack has resumed activity r=" + r
-                            + " state=" + state);
+                                    + " state=" + state);
                     if (r != null && (state == INITIALIZING || state == RESUMED)) Slog.e(TAG,
                             "validateTop...: activity in back resumed r=" + r + " state=" + state);
                 }
@@ -3517,27 +3607,38 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 return "PINNED";
             case LOCK_TASK_MODE_NONE:
                 return "NONE";
-            default: return "unknown=" + mLockTaskModeState;
+            default:
+                return "unknown=" + mLockTaskModeState;
         }
     }
 
     public void dump(PrintWriter pw, String prefix) {
-        pw.print(prefix); pw.print("mFocusedStack=" + mFocusedStack);
-                pw.print(" mLastFocusedStack="); pw.println(mLastFocusedStack);
-        pw.print(prefix); pw.println("mSleepTimeout=" + mSleepTimeout);
-        pw.print(prefix); pw.println("mCurTaskId=" + mCurTaskId);
-        pw.print(prefix); pw.println("mUserStackInFront=" + mUserStackInFront);
-        pw.print(prefix); pw.println("mActivityContainers=" + mActivityContainers);
-        pw.print(prefix); pw.print("mLockTaskModeState=" + lockTaskModeToString());
-                final SparseArray<String[]> packages = mService.mLockTaskPackages;
-                if (packages.size() > 0) {
-                    pw.println(" mLockTaskPackages (userId:packages)=");
-                    for (int i = 0; i < packages.size(); ++i) {
-                        pw.print(prefix); pw.print(prefix); pw.print(packages.keyAt(i));
-                        pw.print(":"); pw.println(Arrays.toString(packages.valueAt(i)));
-                    }
-                }
-                pw.println(" mLockTaskModeTasks" + mLockTaskModeTasks);
+        pw.print(prefix);
+        pw.print("mFocusedStack=" + mFocusedStack);
+        pw.print(" mLastFocusedStack=");
+        pw.println(mLastFocusedStack);
+        pw.print(prefix);
+        pw.println("mSleepTimeout=" + mSleepTimeout);
+        pw.print(prefix);
+        pw.println("mCurTaskId=" + mCurTaskId);
+        pw.print(prefix);
+        pw.println("mUserStackInFront=" + mUserStackInFront);
+        pw.print(prefix);
+        pw.println("mActivityContainers=" + mActivityContainers);
+        pw.print(prefix);
+        pw.print("mLockTaskModeState=" + lockTaskModeToString());
+        final SparseArray<String[]> packages = mService.mLockTaskPackages;
+        if (packages.size() > 0) {
+            pw.println(" mLockTaskPackages (userId:packages)=");
+            for (int i = 0; i < packages.size(); ++i) {
+                pw.print(prefix);
+                pw.print(prefix);
+                pw.print(packages.keyAt(i));
+                pw.print(":");
+                pw.println(Arrays.toString(packages.valueAt(i)));
+            }
+        }
+        pw.println(" mLockTaskModeTasks" + mLockTaskModeTasks);
     }
 
     ArrayList<ActivityRecord> getDumpActivitiesLocked(String name) {
@@ -3545,7 +3646,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     static boolean printThisActivity(PrintWriter pw, ActivityRecord activity, String dumpPackage,
-            boolean needSep, String prefix) {
+                                     boolean needSep, String prefix) {
         if (activity != null) {
             if (dumpPackage == null || dumpPackage.equals(activity.packageName)) {
                 if (needSep) {
@@ -3560,13 +3661,14 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     boolean dumpActivitiesLocked(FileDescriptor fd, PrintWriter pw, boolean dumpAll,
-            boolean dumpClient, String dumpPackage) {
+                                 boolean dumpClient, String dumpPackage) {
         boolean printed = false;
         boolean needSep = false;
         for (int displayNdx = 0; displayNdx < mActivityDisplays.size(); ++displayNdx) {
             ActivityDisplay activityDisplay = mActivityDisplays.valueAt(displayNdx);
-            pw.print("Display #"); pw.print(activityDisplay.mDisplayId);
-                    pw.println(" (activities from top to bottom):");
+            pw.print("Display #");
+            pw.print(activityDisplay.mDisplayId);
+            pw.println(" (activities from top to bottom):");
             ArrayList<ActivityStack> stacks = activityDisplay.mStacks;
             for (int stackNdx = stacks.size() - 1; stackNdx >= 0; --stackNdx) {
                 final ActivityStack stack = stacks.get(stackNdx);
@@ -3623,13 +3725,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     static boolean dumpHistoryList(FileDescriptor fd, PrintWriter pw, List<ActivityRecord> list,
-            String prefix, String label, boolean complete, boolean brief, boolean client,
-            String dumpPackage, boolean needNL, String header1, String header2) {
+                                   String prefix, String label, boolean complete, boolean brief, boolean client,
+                                   String dumpPackage, boolean needNL, String header1, String header2) {
         TaskRecord lastTask = null;
         String innerPrefix = null;
         String[] args = null;
         boolean printed = false;
-        for (int i=list.size()-1; i>=0; i--) {
+        for (int i = list.size() - 1; i >= 0; i--) {
             final ActivityRecord r = list.get(i);
             if (dumpPackage != null && !dumpPackage.equals(r.packageName)) {
                 continue;
@@ -3662,21 +3764,28 @@ public final class ActivityStackSupervisor implements DisplayListener {
                 } else if (complete) {
                     // Complete + brief == give a summary.  Isn't that obvious?!?
                     if (lastTask.intent != null) {
-                        pw.print(prefix); pw.print("  ");
-                                pw.println(lastTask.intent.toInsecureStringWithClip());
+                        pw.print(prefix);
+                        pw.print("  ");
+                        pw.println(lastTask.intent.toInsecureStringWithClip());
                     }
                 }
             }
-            pw.print(prefix); pw.print(full ? "  * " : "    "); pw.print(label);
-            pw.print(" #"); pw.print(i); pw.print(": ");
+            pw.print(prefix);
+            pw.print(full ? "  * " : "    ");
+            pw.print(label);
+            pw.print(" #");
+            pw.print(i);
+            pw.print(": ");
             pw.println(r);
             if (full) {
                 r.dump(pw, innerPrefix);
             } else if (complete) {
                 // Complete + brief == give a summary.  Isn't that obvious?!?
-                pw.print(innerPrefix); pw.println(r.intent.toInsecureString());
+                pw.print(innerPrefix);
+                pw.println(r.intent.toInsecureString());
                 if (r.app != null) {
-                    pw.print(innerPrefix); pw.println(r.app);
+                    pw.print(innerPrefix);
+                    pw.println(r.app);
                 }
             }
             if (client && r.app != null && r.app.thread != null) {
@@ -3883,7 +3992,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
     }
 
     void setLockTaskModeLocked(TaskRecord task, int lockTaskModeState, String reason,
-            boolean andResume) {
+                               boolean andResume) {
         if (task == null) {
             // Take out of lock task mode if necessary
             final TaskRecord lockedTask = getLockedTaskLocked();
@@ -3970,11 +4079,11 @@ public final class ActivityStackSupervisor implements DisplayListener {
             final TaskRecord lockedTask = mLockTaskModeTasks.get(taskNdx);
             final boolean wasWhitelisted =
                     (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_LAUNCHABLE) ||
-                    (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_WHITELISTED);
+                            (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_WHITELISTED);
             lockedTask.setLockTaskAuth();
             final boolean isWhitelisted =
                     (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_LAUNCHABLE) ||
-                    (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_WHITELISTED);
+                            (lockedTask.mLockTaskAuth == LOCK_TASK_AUTH_WHITELISTED);
             if (wasWhitelisted && !isWhitelisted) {
                 // Lost whitelisting authorization. End it now.
                 if (DEBUG_LOCKTASK) Slog.d(TAG_LOCKTASK, "onLockTaskPackagesUpdated: removing " +
@@ -4038,17 +4147,20 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     }
                     // We don't at this point know if the activity is fullscreen,
                     // so we need to be conservative and assume it isn't.
-                    activityIdleInternal((ActivityRecord)msg.obj);
-                } break;
+                    activityIdleInternal((ActivityRecord) msg.obj);
+                }
+                break;
                 case IDLE_NOW_MSG: {
                     if (DEBUG_IDLE) Slog.d(TAG_IDLE, "handleMessage: IDLE_NOW_MSG: r=" + msg.obj);
-                    activityIdleInternal((ActivityRecord)msg.obj);
-                } break;
+                    activityIdleInternal((ActivityRecord) msg.obj);
+                }
+                break;
                 case RESUME_TOP_ACTIVITY_MSG: {
                     synchronized (mService) {
                         resumeTopActivitiesLocked();
                     }
-                } break;
+                }
+                break;
                 case SLEEP_TIMEOUT_MSG: {
                     synchronized (mService) {
                         if (mService.isSleepingOrShuttingDown()) {
@@ -4057,7 +4169,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                             checkReadyForSleepLocked();
                         }
                     }
-                } break;
+                }
+                break;
                 case LAUNCH_TIMEOUT_MSG: {
                     if (mService.mDidDexOpt) {
                         mService.mDidDexOpt = false;
@@ -4074,16 +4187,20 @@ public final class ActivityStackSupervisor implements DisplayListener {
                             mLaunchingActivity.release();
                         }
                     }
-                } break;
+                }
+                break;
                 case HANDLE_DISPLAY_ADDED: {
                     handleDisplayAdded(msg.arg1);
-                } break;
+                }
+                break;
                 case HANDLE_DISPLAY_CHANGED: {
                     handleDisplayChanged(msg.arg1);
-                } break;
+                }
+                break;
                 case HANDLE_DISPLAY_REMOVED: {
                     handleDisplayRemoved(msg.arg1);
-                } break;
+                }
+                break;
                 case CONTAINER_CALLBACK_VISIBILITY: {
                     final ActivityContainer container = (ActivityContainer) msg.obj;
                     final IActivityContainerCallback callback = container.mCallback;
@@ -4093,7 +4210,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         } catch (RemoteException e) {
                         }
                     }
-                } break;
+                }
+                break;
                 case LOCK_TASK_START_MSG: {
                     // When lock task starts, we disable the status bars.
                     try {
@@ -4119,12 +4237,13 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         mWindowManager.disableKeyguard(mToken, LOCK_TASK_TAG);
                         if (getDevicePolicyManager() != null) {
                             getDevicePolicyManager().notifyLockTaskModeChanged(true,
-                                    (String)msg.obj, msg.arg1);
+                                    (String) msg.obj, msg.arg1);
                         }
                     } catch (RemoteException ex) {
                         throw new RuntimeException(ex);
                     }
-                } break;
+                }
+                break;
                 case LOCK_TASK_END_MSG: {
                     // When lock task ends, we enable the status bars.
                     try {
@@ -4159,13 +4278,15 @@ public final class ActivityStackSupervisor implements DisplayListener {
                     } finally {
                         mLockTaskModeState = LOCK_TASK_MODE_NONE;
                     }
-                } break;
+                }
+                break;
                 case SHOW_LOCK_TASK_ESCAPE_MESSAGE_MSG: {
                     if (mLockTaskNotify == null) {
                         mLockTaskNotify = new LockTaskNotify(mService.mContext);
                     }
                     mLockTaskNotify.showToast(LOCK_TASK_MODE_PINNED);
-                } break;
+                }
+                break;
                 case CONTAINER_CALLBACK_TASK_LIST_EMPTY: {
                     final ActivityContainer container = (ActivityContainer) msg.obj;
                     final IActivityContainerCallback callback = container.mCallback;
@@ -4175,7 +4296,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                         } catch (RemoteException e) {
                         }
                     }
-                } break;
+                }
+                break;
                 case LAUNCH_TASK_BEHIND_COMPLETE: {
                     synchronized (mService) {
                         ActivityRecord r = ActivityRecord.forTokenLocked((IBinder) msg.obj);
@@ -4183,7 +4305,8 @@ public final class ActivityStackSupervisor implements DisplayListener {
                             handleLaunchTaskBehindCompleteLocked(r);
                         }
                     }
-                } break;
+                }
+                break;
             }
         }
     }
@@ -4199,7 +4322,9 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         boolean mVisible = true;
 
-        /** Display this ActivityStack is currently on. Null if not attached to a Display. */
+        /**
+         * Display this ActivityStack is currently on. Null if not attached to a Display.
+         */
         ActivityDisplay mActivityDisplay;
 
         final static int CONTAINER_STATE_HAS_SURFACE = 0;
@@ -4371,7 +4496,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
 
         void getBounds(Point outBounds) {
             synchronized (mService) {
-                    if (mActivityDisplay != null) {
+                if (mActivityDisplay != null) {
                     mActivityDisplay.getBounds(outBounds);
                 } else {
                     outBounds.set(0, 0);
@@ -4500,16 +4625,22 @@ public final class ActivityStackSupervisor implements DisplayListener {
         }
     }
 
-    /** Exactly one of these classes per Display in the system. Capable of holding zero or more
-     * attached {@link ActivityStack}s */
+    /**
+     * Exactly one of these classes per Display in the system. Capable of holding zero or more
+     * attached {@link ActivityStack}s
+     */
     class ActivityDisplay {
-        /** Actual Display this object tracks. */
+        /**
+         * Actual Display this object tracks.
+         */
         int mDisplayId;
         Display mDisplay;
         DisplayInfo mDisplayInfo = new DisplayInfo();
 
-        /** All of the stacks on this display. Order matters, topmost stack is in front of all other
-         * stacks, bottommost behind. Accessed directly by ActivityManager package classes */
+        /**
+         * All of the stacks on this display. Order matters, topmost stack is in front of all other
+         * stacks, bottommost behind. Accessed directly by ActivityManager package classes
+         */
         final ArrayList<ActivityStack> mStacks = new ArrayList<ActivityStack>();
 
         ActivityRecord mVisibleBehindActivity;
@@ -4573,7 +4704,7 @@ public final class ActivityStackSupervisor implements DisplayListener {
             mVirtualDisplay = dm.createVirtualDisplay(mService.mContext, null,
                     VIRTUAL_DISPLAY_BASE_NAME, width, height, density, null,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC |
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY, null, null);
+                            DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY, null, null);
 
             init(mVirtualDisplay.getDisplay());
 

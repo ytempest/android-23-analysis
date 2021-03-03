@@ -6191,6 +6191,7 @@ public class Activity extends ContextThemeWrapper
         mUiThread = Thread.currentThread();
 
         mMainThread = aThread;
+        // 在attach方法会初始化mInstrumentation
         mInstrumentation = instr;
         mToken = token;
         mIdent = ident;
@@ -6311,6 +6312,7 @@ public class Activity extends ContextThemeWrapper
 
         mCalled = false;
         // mResumed is set by the instrumentation
+        // 通过Instrumentation回调Activity的onResume方法
         mInstrumentation.callActivityOnResume(this);
         if (!mCalled) {
             throw new SuperNotCalledException(
@@ -6376,9 +6378,11 @@ public class Activity extends ContextThemeWrapper
                 WindowManagerGlobal.getInstance().setStoppedState(mToken, true);
             }
 
+            // 分发stop事件给各个Fragment，这就表示Fragment的onStop是比Activity的onStop先执行的
             mFragments.dispatchStop();
 
             mCalled = false;
+            // 通过Instrumentation回调Activity的onStop事件
             mInstrumentation.callActivityOnStop(this);
             if (!mCalled) {
                 throw new SuperNotCalledException(
