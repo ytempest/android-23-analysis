@@ -399,7 +399,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
                     getContext());
             transitionTo(newScene);
         } else {
-            // 加载 Activity的布局文件到 mContentParent
+            // 加载 Activity的布局文件并添加到 mContentParent
             // mContentParent就是系统的com.android.internal.R.id.content 这个View
             mLayoutInflater.inflate(layoutResID, mContentParent);
         }

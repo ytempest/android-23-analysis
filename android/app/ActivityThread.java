@@ -3351,7 +3351,8 @@ public final class ActivityThread {
                 if (a.mVisibleFromClient) {
                     // 标记已经将DecorView添加到Window
                     a.mWindowAdded = true;
-                    // 将DecorView添加到Window
+                    // 将DecorView添加到Window，所以这里可以知道，在这个方法执行之前，即使在子线程更新View也不会抛异常，
+                    // 因为更新View时检查线程是在WindowManagerService中的，但是这时，DecorView还没有添加到Window
                     // 由此可将，DecorView添加到 Window的过程跟我们将View添加到Window过程差不多
                     wm.addView(decor, l);
                 }

@@ -18644,6 +18644,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
         mPrivateFlags |= PFLAG_INVALIDATED;
 
         if (mParent != null && !mParent.isLayoutRequested()) {
+            // 如果当前View为DecorView，那么它的Parent就是ViewRootImpl，而这个Parent是在ViewRootImpl中的setView()
+            // 中的assignParent()方法设置的，所以这里会调用到ViewRootImpl的requestLayout()（在这个方法中会检测UI线程）
             mParent.requestLayout();
         }
         if (mAttachInfo != null && mAttachInfo.mViewRequestingLayout == this) {

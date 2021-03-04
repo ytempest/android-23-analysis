@@ -530,7 +530,7 @@ public final class ViewRootImpl implements ViewParent,
                 // Schedule the first layout -before- adding to the window
                 // manager, to make sure we do the relayout before receiving
                 // any other events from the system.
-                // 2、调用 requestLayout()方法异步刷新布局
+                // 2、调用 requestLayout()方法异步刷新布局，同时检测当前所在线程
                 requestLayout();
                 if ((mWindowAttributes.inputFeatures
                         & WindowManager.LayoutParams.INPUT_FEATURE_NO_INPUT_CHANNEL) == 0) {
@@ -540,6 +540,7 @@ public final class ViewRootImpl implements ViewParent,
                     mOrigWindowType = mWindowAttributes.type;
                     mAttachInfo.mRecomputeGlobalAttributes = true;
                     collectViewAttributes();
+                    // 到这里之前其实都还算是应用进程内的，下面就是使用IPC向系统进程发送信息，告知需要显示View了
                     // 3、将该View添加到远程的 Session服务中进行显示
                     res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,
                             getHostVisibility(), mDisplay.getDisplayId(),
@@ -630,6 +631,10 @@ public final class ViewRootImpl implements ViewParent,
                             Looper.myLooper());
                 }
 
+                // 重点！！！！
+                // 重点！！！！
+                // 重点！！！！
+                // 这里将ViewRootImpl设置到了View中，也就是ViewRootImpl作为Parent关联到了View
                 view.assignParent(this);
                 mAddedTouchMode = (res & WindowManagerGlobal.ADD_FLAG_IN_TOUCH_MODE) != 0;
                 mAppVisible = (res & WindowManagerGlobal.ADD_FLAG_APP_VISIBLE) != 0;
@@ -1406,7 +1411,13 @@ public final class ViewRootImpl implements ViewParent,
             if (mViewLayoutDirectionInitial == View.LAYOUT_DIRECTION_INHERIT) {
                 host.setLayoutDirection(mLastConfiguration.getLayoutDirection());
             }
-            // 4、开始分发该 View添加到Window这个事件
+            // 4、开始分发该 View添加到Window这个事件，host为DecorView，DecorView没有重写该方法，所以直接看到ViewGroup中，
+            // 调用顺序为：
+            //  -> ViewGroup#dispatchAttachedToWindow
+            //  -> View#dispatchAttachedToWindow
+            //  -> DecorView#onAttachedToWindow
+            //  -> Activity#onAttachedToWindow 【这里是通过Window的回调传递给Activity的】
+            //  -> DecorView内部的子View的dispatchAttachedToWindow
             host.dispatchAttachedToWindow(mAttachInfo, 0);
             mAttachInfo.mTreeObserver.dispatchOnWindowAttachedChange(true);
             dispatchApplyInsets(host);

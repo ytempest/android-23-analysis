@@ -515,6 +515,7 @@ public abstract class LayoutInflater {
 
                     // We are supposed to attach all the views we found (int temp)
                     // to root. Do that now.
+                    // 将inflate出来的View添加到父布局中
                     if (root != null && attachToRoot) {
                         root.addView(temp, params);
                     }
