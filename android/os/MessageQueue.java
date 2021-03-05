@@ -31,7 +31,7 @@ import java.util.ArrayList;
  * Low-level class holding the list of messages to be dispatched by a
  * {@link Looper}.  Messages are not added directly to a MessageQueue,
  * but rather through {@link Handler} objects associated with the Looper.
- * 
+ *
  * <p>You can retrieve the MessageQueue for the current thread with
  * {@link Looper#myQueue() Looper.myQueue()}.
  */
@@ -320,6 +320,9 @@ public final class MessageQueue {
                 Binder.flushPendingCommands();
             }
 
+            // 该方法会一直阻塞，直到阻塞nextPollTimeoutMillis毫秒后，或者通过nativeWake方法才会唤醒，执行下面的代码
+            // 这里的阻塞并不是线程上的阻塞，更像是暂停了这个对象的运行，而等待下一个消息
+            // https://www.cnblogs.com/jiy-for-you/archive/2019/10/20/11707356.html
             nativePollOnce(ptr, nextPollTimeoutMillis);
 
             synchronized (this) {
@@ -335,19 +338,25 @@ public final class MessageQueue {
                     } while (msg != null && !msg.isAsynchronous());
                 }
                 if (msg != null) {
-                    if (now < msg.when) {
+                    if (now < msg.when) { // 若还没到达下一个消息的执行时间
                         // Next message is not ready.  Set a timeout to wake up when it is ready.
+                        // 还没有到达下一个消息的执行时间，计算需要等待的时间，然后等待，到达指定时间后再执行
                         nextPollTimeoutMillis = (int) Math.min(msg.when - now, Integer.MAX_VALUE);
-                    } else {
+                    } else { // 到达下一个消息的执行时间
                         // Got a message.
                         mBlocked = false;
                         if (prevMsg != null) {
+                            // 如果prevMsg不为空，说明这个prevMsg消息前面还有消息（这些消息由于什么原因还没有执行？？），所以
+                            // 这里将msg信息从队列中取出，并连接msg的下一个消息
                             prevMsg.next = msg.next;
                         } else {
+                            // 走到这里说明msg已经处于队首位置，所以这里将队列指针指向msg的下一个消息
                             mMessages = msg.next;
                         }
+                        // 移除msg消息的队列关联
                         msg.next = null;
                         if (DEBUG) Log.v(TAG, "Returning message: " + msg);
+                        // 标识该msg已经使用
                         msg.markInUse();
                         return msg;
                     }
@@ -551,6 +560,9 @@ public final class MessageQueue {
             msg.when = when;
             Message p = mMessages;
             boolean needWake;
+            // p == null：如果当前消息队列中没有消息，那么将向当前消息插入到队首
+            // when == 0：如果当前消息不需要延迟执行，那么将向当前消息插入到队首
+            // when < p.when：如果当前消息延迟执行的时间小于队列中的第一个消息的执行时间，那么将向当前消息插入到队首
             if (p == null || when == 0 || when < p.when) {
                 // New head, wake up the event queue if blocked.
                 msg.next = p;
@@ -560,6 +572,7 @@ public final class MessageQueue {
                 // Inserted within the middle of the queue.  Usually we don't have to wake
                 // up the event queue unless there is a barrier at the head of the queue
                 // and the message is the earliest asynchronous message in the queue.
+                // 1、遍历队列，找出队列中第一个执行时间比当前消息执行时间大的消息
                 needWake = mBlocked && p.target == null && msg.isAsynchronous();
                 Message prev;
                 for (;;) {
@@ -572,6 +585,7 @@ public final class MessageQueue {
                         needWake = false;
                     }
                 }
+                // 2、将当前消息插入到队列中
                 msg.next = p; // invariant: p == prev.next
                 prev.next = msg;
             }
