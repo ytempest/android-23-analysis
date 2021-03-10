@@ -356,7 +356,7 @@ public final class MessageQueue {
                         // 移除msg消息的队列关联
                         msg.next = null;
                         if (DEBUG) Log.v(TAG, "Returning message: " + msg);
-                        // 标识该msg已经使用
+                        // 标识该msg正在使用中
                         msg.markInUse();
                         return msg;
                     }
@@ -556,6 +556,7 @@ public final class MessageQueue {
                 return false;
             }
 
+            // 标识msg正在使用
             msg.markInUse();
             msg.when = when;
             Message p = mMessages;
