@@ -116,17 +116,22 @@ public class ZygoteInit {
     private static void registerZygoteSocket(String socketName) {
         if (sServerSocket == null) {
             int fileDesc;
+            // 拼接Socket的名称，即：ANDROID_SOCKET_zygote
             final String fullSocketName = ANDROID_SOCKET_PREFIX + socketName;
             try {
+                // 得到 Socket的环境变量的值
                 String env = System.getenv(fullSocketName);
+                // 将 Socket环境变量的值转换成文件描述符的参数
                 fileDesc = Integer.parseInt(env);
             } catch (RuntimeException ex) {
                 throw new RuntimeException(fullSocketName + " unset or invalid", ex);
             }
 
             try {
+                // 创建文件描述符
                 FileDescriptor fd = new FileDescriptor();
                 fd.setInt$(fileDesc);
+                // 创建服务器端的Socket
                 sServerSocket = new LocalServerSocket(fd);
             } catch (IOException ex) {
                 throw new RuntimeException(
@@ -526,6 +531,7 @@ public class ZygoteInit {
                 OsConstants.CAP_SYS_TTY_CONFIG
         );
         /* Hardcoded command line to start the system server */
+        // 创建args数组，这个数组用来保存启动SystemServer的启动参数
         String args[] = {
                 "--setuid=1000",
                 "--setgid=1000",
@@ -558,11 +564,12 @@ public class ZygoteInit {
         }
 
         /* For child process */
+        // 如果创建进程成功，下面的逻辑将运行在子进程中，即：SystemServer
         if (pid == 0) {
             if (hasSecondZygote(abiList)) {
                 waitForSecondaryZygote(socketName);
             }
-
+            // 处理SystemServer进程
             handleSystemServerProcess(parsedArgs);
         }
 
@@ -716,6 +723,7 @@ public class ZygoteInit {
                 pollFds[i].events = (short) POLLIN;
             }
             try {
+                // 接收SystemServer通过Socket发送过来的消息
                 Os.poll(pollFds, -1);
             } catch (ErrnoException ex) {
                 throw new RuntimeException("poll failed", ex);
@@ -729,6 +737,8 @@ public class ZygoteInit {
                     peers.add(newPeer);
                     fds.add(newPeer.getFileDesciptor());
                 } else {
+                    // 从Socket读取启动命令；如果成功，则抛出 在父进程中，该子进程中抛出MethodAndArgsCaller异常，
+                    // 失败时，不会生成子级，消息会打印到日志和stderr。返回一个布尔状态值，该值指示是否读取到Socket命令的文件结尾。
                     boolean done = peers.get(i).runOnce();
                     if (done) {
                         peers.remove(i);

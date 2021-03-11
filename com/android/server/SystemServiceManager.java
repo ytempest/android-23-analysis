@@ -89,6 +89,7 @@ public class SystemServiceManager {
         try {
             // 3、通过反射创建这个服务
             Constructor<T> constructor = serviceClass.getConstructor(Context.class);
+            // 系统服务的Context来源于SystemServer
             service = constructor.newInstance(mContext);
         } catch (InstantiationException ex) {
             throw new RuntimeException("Failed to create service " + name
