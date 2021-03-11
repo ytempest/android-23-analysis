@@ -9289,6 +9289,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                 result = true;
             }
 
+            // OnTouchListener的监听会先于View的onTouchEvent()执行
             // 最后把触摸事件交给 onToucheEvent()方法进行处理
             if (!result && onTouchEvent(event)) {
                 result = true;
@@ -10317,8 +10318,8 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                                 if (mPerformClick == null) {
                                     mPerformClick = new PerformClick();
                                 }
+                                // post一个Runnable调用onClick()方法
                                 if (!post(mPerformClick)) {
-                                    // 会调用onClick()方法
                                     performClick();
                                 }
                             }
@@ -10336,6 +10337,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                             mUnsetPressedState.run();
                         }
 
+                        // 移除长按点击的执行任务
                         removeTapCallback();
                     }
                     mIgnoreNextUpEvent = false;
@@ -10360,6 +10362,7 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
                         }
                         mPendingCheckForTap.x = event.getX();
                         mPendingCheckForTap.y = event.getY();
+                        // 手指按下不动时就会延迟post一个任务调用performLongClick
                         postDelayed(mPendingCheckForTap, ViewConfiguration.getTapTimeout());
                     } else {
                         // Not inside a scrolling container, so show the feedback right away

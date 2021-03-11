@@ -2382,6 +2382,7 @@ public class PhoneWindow extends Window implements MenuBuilder.Callback {
             // 获取Activity注册在PhoneWindow中的回调，这个回调接口会在触摸事件发生时回调
             final Callback cb = getCallback();
             // 调用Activity实现的的 dispatchTouchEvent()回调方法
+            // mFeatureId会在generateDecor()中赋值为-1
             return cb != null && !isDestroyed() && mFeatureId < 0 ? cb.dispatchTouchEvent(ev)
                     : super.dispatchTouchEvent(ev);
         }
