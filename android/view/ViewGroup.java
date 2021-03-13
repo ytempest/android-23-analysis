@@ -2148,7 +2148,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             } else {
                 // There are no touch targets and this action is not an initial down
                 // so this view group continues to intercept touches.
-                // 默认拦截没有分发给子View的所有除了ACTION_DOWN的触摸事件
+                // 默认拦截没有分发给子View的所有触摸事件，除了ACTION_DOWN
                 intercepted = true;
             }
 
@@ -2252,6 +2252,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
                                 }
                                 mLastTouchDownX = ev.getX();
                                 mLastTouchDownY = ev.getY();
+                                // 这里为mFirstTouchTarget赋值
                                 newTouchTarget = addTouchTarget(child, idBitsToAssign);
                                 alreadyDispatchedToNewTouchTarget = true;
                                 break;
@@ -2277,7 +2278,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
             }
 
             // Dispatch to touch targets.
-            // 如果mFirstTouchTarget为空，即表示本ViewGroup拦截了ACTION_DOWN事件以及其他触摸事件
+            // 如果mFirstTouchTarget为空，即表示本ViewGroup没有拦截其他触摸事件
             if (mFirstTouchTarget == null) {
                 // No touch targets so treat this as an ordinary view.
                 // 让本ViewGroup的父类View分发该事件
@@ -2568,6 +2569,7 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager 
         if (cancel || oldAction == MotionEvent.ACTION_CANCEL) {
             event.setAction(MotionEvent.ACTION_CANCEL);
             if (child == null) {
+                // 回调父类的dispatchTouchEvent方法，即View的
                 handled = super.dispatchTouchEvent(event);
             } else {
                 handled = child.dispatchTouchEvent(event);

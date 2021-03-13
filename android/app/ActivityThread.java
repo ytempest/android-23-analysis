@@ -5472,10 +5472,14 @@ public final class ActivityThread {
             android.ddm.DdmHandleAppName.setAppName("system_process",
                     UserHandle.myUserId());
             try {
+                // 创建一个 Instrumentation对象，这个对象会在启动Activity的时候调用
                 mInstrumentation = new Instrumentation();
+                // 创建一个 ContextImpl对象
                 ContextImpl context = ContextImpl.createAppContext(
                         this, getSystemContext().mPackageInfo);
+                // 初始化一个 Application对象
                 mInitialApplication = context.mPackageInfo.makeApplication(true, null);
+                // 调用这个 Application对象的 onCreate()方法
                 mInitialApplication.onCreate();
             } catch (Exception e) {
                 throw new RuntimeException(
