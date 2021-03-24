@@ -1113,8 +1113,10 @@ public final class ViewRootImpl implements ViewParent,
         if (!mTraversalScheduled) {
             // 设置已经调度了 View的绘制任务
             mTraversalScheduled = true;
+            // 设置同步障碍，确保mTraversalRunnable优先被执行
             mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier();
-            // 调度任务开始 View的绘制，View的绘制逻辑保存在 mTraversalRunnable对象中
+            // 调度任务开始 View的绘制，View的绘制逻辑保存在 mTraversalRunnable对象中，内部通过
+            // Handler发送了一个异步消息（调用Message.setAsynchronous(true)设置为异步消息）
             mChoreographer.postCallback(
                     Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null);
             if (!mUnbufferedInputDispatch) {

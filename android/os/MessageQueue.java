@@ -471,6 +471,7 @@ public final class MessageQueue {
     private int postSyncBarrier(long when) {
         // Enqueue a new sync barrier token.
         // We don't need to wake the queue because the purpose of a barrier is to stall it.
+        // 添加一个同步屏障消息到消息队列首部，但是不会唤醒队列，因为屏障的意思就是阻断下一个消息
         synchronized (this) {
             final int token = mNextBarrierToken++;
             final Message msg = Message.obtain();
